@@ -3,9 +3,10 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
 
 from forms import UserAddForm, LoginForm, MessageForm, UserUpdateForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Follows
 
 CURR_USER_KEY = "curr_user"
 
@@ -39,7 +40,8 @@ def add_user_to_g():
     else:
         g.user = None
 
-# HELPER FUNCTIONS 
+# HELPER FUNCTIONS
+
 
 def do_login(user):
     """Log in user."""
@@ -53,7 +55,8 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
-# ROUTE FUNCTIONS 
+# ROUTE FUNCTIONS
+
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -114,8 +117,8 @@ def login():
 @app.route('/logout')
 def logout():
     """Handle logout of user."""
-    
-    session.pop(CURR_USER_KEY, None)
+    do_logout()
+    # session.pop(CURR_USER_KEY, None)
     flash('You have successfully logged out.')
     return redirect('/signup')
 
@@ -189,11 +192,13 @@ def add_follow(follow_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
+    referer = request.headers.get("Referer")
+
     followed_user = User.query.get_or_404(follow_id)
     g.user.following.append(followed_user)
     db.session.commit()
 
-    return redirect(f"/users/{g.user.id}/following")
+    return redirect(referer)
 
 
 @app.route('/users/stop-following/<int:follow_id>', methods=['POST'])
@@ -203,12 +208,14 @@ def stop_following(follow_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
+    
+    referer = request.headers.get("Referer")
 
     followed_user = User.query.get(follow_id)
     g.user.following.remove(followed_user)
     db.session.commit()
 
-    return redirect(f"/users/{g.user.id}/following")
+    return redirect(referer) # old version: /users/{g.user.id}/following")
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
@@ -220,26 +227,27 @@ def profile():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
-    user = User.query.get(session[CURR_USER_KEY])
 
-    form = UserUpdateForm(obj=user)
+    # user = User.query.get(session[CURR_USER_KEY])
+
+    form = UserUpdateForm(obj=g.user)
 
     if form.validate_on_submit():
-        user = User.authenticate(user.username, form.password.data)
+        user = User.authenticate(g.user.username, form.password.data)
         if user:
             user.username = form.username.data
             user.email = form.email.data
             user.image_url = form.image_url.data
             user.header_image_url = form.header_image_url.data
             user.bio = form.bio.data
+            user.location = form.location.data
 
             db.session.commit()
             return redirect(f'/users/{user.id}')
         else:
             flash('Wrong password!')
             return redirect('/')
-    
+
     return render_template('/users/edit.html', form=form)
 
 
@@ -321,8 +329,12 @@ def homepage():
     """
 
     if g.user:
+        following_ids = [user.id for user in g.user.following] + [g.user.id]
+        for user in g.user.following:
+            following_ids.append(user.id)
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
@@ -344,8 +356,8 @@ def homepage():
 def add_header(req):
     """Add non-caching headers on every request."""
 
-    req.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    req.headers["Pragma"] = "no-cache"
-    req.headers["Expires"] = "0"
-    req.headers['Cache-Control'] = 'public, max-age=0'
+    req.headers["Cache-Control"]="no-cache, no-store, must-revalidate"
+    req.headers["Pragma"]="no-cache"
+    req.headers["Expires"]="0"
+    req.headers['Cache-Control']='public, max-age=0'
     return req
