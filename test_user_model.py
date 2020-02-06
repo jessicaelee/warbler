@@ -8,7 +8,8 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, Follows
+from models import db, User, Message, Follows, Like
+from sqlalchemy.exc import IntegrityError
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -34,12 +35,38 @@ class UserModelTestCase(TestCase):
 
     def setUp(self):
         """Create test client, add sample data."""
+        db.session.rollback()
 
         User.query.delete()
         Message.query.delete()
         Follows.query.delete()
 
+        u1 = User(
+            email="test1@test.com",
+            username="testuser1",
+            password="HASHED_PASSWORD"
+        )
+
+        u2 = User(
+            email="test2@test.com",
+            username="testuser2",
+            password="HASHED_PASSWORD"
+        )
+
+        db.session.add_all([u1, u2])
+        db.session.commit()
+
+        self.u1 = u1
+        self.u2 = u2
+        # self.id = u1.id
+        # self.username = u1.username
+        # self.email = u1.email
+
         self.client = app.test_client()
+    
+    # def tearDown(self):
+    #     """ Rollback any errors """
+    #     db.session.rollback()
 
     def test_user_model(self):
         """Does basic model work?"""
@@ -54,5 +81,94 @@ class UserModelTestCase(TestCase):
         db.session.commit()
 
         # User should have no messages & no followers
+        self.assertEqual(User.query.count(), 3)
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
+
+    def test_user_repr(self):
+        """Does User __repr__ work as expected?"""
+
+        # u1 = User.query.get(self.id)
+
+        self.assertEqual(str(self.u1), f"<User #{self.u1.id}: {self.u1.username}, {self.u1.email}>")
+
+    def test_user_is_following(self):
+        """Does User method is_following successfully indicate whether u1 is following u2"""
+        self.assertEqual(self.u1.is_following(self.u2), False)
+
+        self.u1.following.append(self.u2)
+
+        db.session.commit()
+
+        self.assertEqual(self.u1.is_following(self.u2), True)
+        self.assertEqual(self.u2.is_following(self.u1), False)
+
+    def test_user_is_followed_by(self):
+        """Does User method is_followed_by indicate appropropiately whether u1 is followed by u2"""
+        # Running this with follow-up makes second test also equal false...
+        self.assertEqual(self.u2.is_followed_by(self.u1), False)
+
+        self.u2.followers.append(self.u1)
+
+        db.session.commit()
+
+        self.assertEqual(self.u2.is_followed_by(self.u1), True)
+    
+    def test_bad_user_creation_password(self):
+        """Test invalid password given to User creation"""
+
+        with self.assertRaises(ValueError):
+            User.signup(
+                email="test3@test.com",
+                username="testuser3",
+                password="",
+                image_url=None
+                )
+        
+    def test_bad_user_creation_email_duplicate(self):  
+        """Test duplicate email given to User creation"""
+
+        with self.assertRaises(IntegrityError):
+            User.signup(
+                email="test1@test.com",
+                username="testuser3",
+                password="123456",
+                image_url=None
+                )
+            db.session.commit()
+
+    def test_bad_user_creation_email_null(self):  
+        """Test null email given to User creation"""
+
+        with self.assertRaises(IntegrityError):
+            User.signup(
+                email=None,
+                username="testuser3",
+                password="123456",
+                image_url=None
+                )
+            db.session.commit()
+    
+    def test_bad_user_creation_username_duplicate(self):
+        """Test duplicate username given to User creation"""
+
+        with self.assertRaises(IntegrityError):
+            User.signup(
+                email="test3@test.com",
+                username="testuser1",
+                password="123456",
+                image_url=None
+                )
+            db.session.commit()
+    
+    def test_bad_user_creation_username_null(self):
+        """Test null username given to User creation"""
+
+        with self.assertRaises(IntegrityError):
+            User.signup(
+                email="test3@test.com",
+                username=None,
+                password="123456",
+                image_url=None
+                )
+            db.session.commit()
