@@ -174,7 +174,7 @@ class Message(db.Model):
 
     user = db.relationship('User')
 
-class Like(db. Model):
+class Like(db.Model):
     """A table to connect user to likes"""
      
     __tablename__ = "likes"
@@ -190,7 +190,8 @@ class Like(db. Model):
         db.ForeignKey('messages.id', ondelete='CASCADE'),
         nullable=False, primary_key=True,
     )
-    
+
+# CHECK THIS TABLE!!!!!!!! ^
 
 
 def connect_db(app):
