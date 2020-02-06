@@ -157,7 +157,10 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', user=user, messages=messages)
+    likes = Like.query.filter(Like.user_id==g.user.id)
+    likes_id = [like.message_id for like in likes]
+    
+    return render_template('users/show.html', user=user, messages=messages, likes=likes_id)
 
 
 @app.route('/users/<int:user_id>/following')
