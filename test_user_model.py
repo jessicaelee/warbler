@@ -41,16 +41,19 @@ class UserModelTestCase(TestCase):
         Message.query.delete()
         Follows.query.delete()
 
-        u1 = User(
+        password = 'HASHED_PASSWORD'
+
+        u1 = User.signup(
             email="test1@test.com",
             username="testuser1",
-            password="HASHED_PASSWORD"
+            password=password,
+            image_url=None
         )
 
         u2 = User(
             email="test2@test.com",
             username="testuser2",
-            password="HASHED_PASSWORD"
+            password=password
         )
 
         db.session.add_all([u1, u2])
@@ -58,6 +61,7 @@ class UserModelTestCase(TestCase):
 
         self.u1 = u1
         self.u2 = u2
+        self.password = password
         # self.id = u1.id
         # self.username = u1.username
         # self.email = u1.email
@@ -172,3 +176,38 @@ class UserModelTestCase(TestCase):
                 image_url=None
                 )
             db.session.commit()
+
+    def test_create_account_successful(self):
+        """Test signup with valid inputs"""
+
+        new_user = User.signup(
+                    email="test4@test.com",
+                    username="newusername",
+                    password="123456",
+                    image_url=None
+                    )
+        db.session.commit()
+
+        self.assertEqual(User.query.count(), 3)
+
+
+    def test_authentication_of_good_username_and_password(self):
+        """test login with correct username and password"""
+
+        user1 = User.authenticate(self.u1.username, self.password)
+
+        self.assertEqual(user1, self.u1)
+
+    def test_authentication_of_bad_username(self):
+        """test login with an incorrect username"""
+
+        user1 = User.authenticate('badusername', self.password)
+
+        self.assertFalse(user1)
+    
+    def test_authentication_of_bad_password(self):
+        """test login with an incorrect password"""
+
+        user1 = User.authenticate(self.u1.username, 'badpassword')
+
+        self.assertFalse(user1)       
