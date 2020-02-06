@@ -157,10 +157,10 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    likes = Like.query.filter(Like.user_id==g.user.id)
-    likes_id = [like.message_id for like in likes]
     
-    return render_template('users/show.html', user=user, messages=messages, likes=likes_id)
+    likes = g.user.liked_messages
+
+    return render_template('users/show.html', g_user=g.user, user=user, messages=messages, likes=likes)
 
 
 @app.route('/users/<int:user_id>/following')
@@ -211,14 +211,14 @@ def stop_following(follow_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
     referer = request.headers.get("Referer")
 
     followed_user = User.query.get(follow_id)
     g.user.following.remove(followed_user)
     db.session.commit()
 
-    return redirect(referer) # old version: /users/{g.user.id}/following")
+    return redirect(referer)  # old version: /users/{g.user.id}/following")
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
@@ -277,12 +277,11 @@ def show_likes(user_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
-    likes = Like.query.filter(Like.user_id==g.user.id)
-    likes_id = [like.message_id for like in likes]
-    
+
+    likes = g.user.liked_messages
+
     user = User.query.get_or_404(user_id)
-    return render_template('users/likes.html', user=user, likes=likes_id)
+    return render_template('users/likes.html', user=user, likes=likes)
 
 
 ##############################################################################
@@ -339,31 +338,39 @@ def message_like(message_id):
 
     if not g.user:
         flash("Access unauthorized.", "danger")
-        return redirect("/")   
-    
-    like = Like(user_id=g.user.id, message_id=message_id)
+        return redirect("/")
 
-    db.session.add(like)
-    db.session.commit()
+    message = Message.query.get(message_id)
 
-    referer = request.headers.get("Referer")
-
-    return redirect(referer)
-
-@app.route('/messages/<int:message_id>/unlike', methods=['POST'])
-def message_unlike(message_id):
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")   
-
-    Like.query.filter(and_(Like.user_id==g.user.id,Like.message_id==message_id)).delete()
+    if message in g.user.liked_messages:
+        Like.query.filter(and_(Like.user_id == g.user.id,
+                               Like.message_id == message_id)).delete()
+    else:
+        like = Like(user_id=g.user.id, message_id=message_id)
+        db.session.add(like)
 
     db.session.commit()
 
     referer = request.headers.get("Referer")
 
     return redirect(referer)
+
+
+# @app.route('/messages/<int:message_id>/unlike', methods=['POST'])
+# def message_unlike(message_id):
+
+#     if not g.user:
+#         flash("Access unauthorized.", "danger")
+#         return redirect("/")
+
+#     Like.query.filter(and_(Like.user_id == g.user.id,
+#                            Like.message_id == message_id)).delete()
+
+#     db.session.commit()
+
+#     referer = request.headers.get("Referer")
+
+#     return redirect(referer)
 
 
 ##############################################################################
@@ -388,10 +395,10 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-        likes = Like.query.filter(Like.user_id==g.user.id)
-        likes_id = [like.message_id for like in likes]
+        
+        likes = g.user.liked_messages
 
-        return render_template('home.html', messages=messages, likes=likes_id, user=g.user)
+        return render_template('home.html', messages=messages, likes=likes, user=g.user)
 
     else:
         return render_template('home-anon.html')
@@ -408,8 +415,8 @@ def homepage():
 def add_header(req):
     """Add non-caching headers on every request."""
 
-    req.headers["Cache-Control"]="no-cache, no-store, must-revalidate"
-    req.headers["Pragma"]="no-cache"
-    req.headers["Expires"]="0"
-    req.headers['Cache-Control']='public, max-age=0'
+    req.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    req.headers["Pragma"] = "no-cache"
+    req.headers["Expires"] = "0"
+    req.headers['Cache-Control'] = 'public, max-age=0'
     return req
