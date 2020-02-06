@@ -3,10 +3,10 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from forms import UserAddForm, LoginForm, MessageForm, UserUpdateForm
-from models import db, connect_db, User, Message, Follows
+from models import db, connect_db, User, Message, Follows, Like
 
 CURR_USER_KEY = "curr_user"
 
@@ -19,7 +19,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
@@ -316,6 +316,38 @@ def messages_destroy(message_id):
     return redirect(f"/users/{g.user.id}")
 
 
+@app.route('/messages/<int:message_id>/like', methods=['POST'])
+def message_like(message_id):
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")   
+    
+    like = Like(user_id=g.user.id, message_id=message_id)
+
+    db.session.add(like)
+    db.session.commit()
+
+    referer = request.headers.get("Referer")
+
+    return redirect(referer)
+
+@app.route('/messages/<int:message_id>/unlike', methods=['POST'])
+def message_unlike(message_id):
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")   
+
+    Like.query.filter(and_(Like.user_id==g.user.id,Like.message_id==message_id)).delete()
+
+    db.session.commit()
+
+    referer = request.headers.get("Referer")
+
+    return redirect(referer)
+
+
 ##############################################################################
 # Homepage and error pages
 
@@ -338,8 +370,10 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+        likes = Like.query.filter(Like.user_id==g.user.id)
+        likes_id = [like.message_id for like in likes]
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, likes=likes_id, user=g.user)
 
     else:
         return render_template('home-anon.html')

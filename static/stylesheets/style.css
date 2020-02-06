@@ -273,6 +273,26 @@ nav + .container {
     z-index: 2;
 }
 
+.star {
+    display: inline-block;
+    position: relative;
+    z-index: 3;
+    outline: 0;
+}
+
+.star button {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+}
+
+.star button:focus {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    outline: none;
+}
+
 #messages .list-group-item {
     display: flex;
     align-items: flex-start;
