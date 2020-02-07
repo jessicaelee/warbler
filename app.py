@@ -351,6 +351,7 @@ def message_like(message_id):
     except: 
         return jsonify(dbupdate=False)
     
+
     return jsonify(dbupdate=True)
 
     # referer = request.headers.get("Referer")
