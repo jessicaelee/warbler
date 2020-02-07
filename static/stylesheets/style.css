@@ -170,6 +170,10 @@ nav + .container {
     width: 100%;
 }
 
+#no-followers a {
+    display: inline-block;
+}
+
 #profile-avatar {
     width: 200px;
     height: 200px;

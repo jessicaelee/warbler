@@ -194,3 +194,4 @@ class UserViewsTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn('This is 2 message',html)
+

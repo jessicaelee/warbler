@@ -76,3 +76,5 @@ class MessageModelTestCase(TestCase):
         db.session.commit()
 
         self.assertEqual(Message.query.count(), 0)       
+
+    

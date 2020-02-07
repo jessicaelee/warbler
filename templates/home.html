@@ -39,7 +39,12 @@
     </aside>
 
     <div class="col-lg-6 col-md-8 col-sm-12">
+      {% if g.user.followers | length == 0 %}
+      You're not following anyone. Click <a id="no-followers" href="/users">here</a> to find some users to follow!
+
+      {% endif %}
       <ul class="list-group" id="messages">
+
         {% for msg in messages %}
           
 
