@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, request, flash, redirect, session, g
+from flask import Flask, render_template, request, flash, redirect, session, g, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import or_, and_
@@ -337,21 +337,25 @@ def message_like(message_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
+    
+    try: 
+        message = Message.query.get(message_id)
+        if message in g.user.liked_messages:
+            Like.query.filter(and_(Like.user_id == g.user.id,
+                                Like.message_id == message_id)).delete()
+        else:
+            like = Like(user_id=g.user.id, message_id=message_id)
+            db.session.add(like)
 
-    message = Message.query.get(message_id)
+        db.session.commit()
+    except: 
+        return jsonify(dbupdate=False)
+    
+    return jsonify(dbupdate=True)
 
-    if message in g.user.liked_messages:
-        Like.query.filter(and_(Like.user_id == g.user.id,
-                               Like.message_id == message_id)).delete()
-    else:
-        like = Like(user_id=g.user.id, message_id=message_id)
-        db.session.add(like)
+    # referer = request.headers.get("Referer")
 
-    db.session.commit()
-
-    referer = request.headers.get("Referer")
-
-    return redirect(referer)
+    # return redirect(referer)
 
 
 # @app.route('/messages/<int:message_id>/unlike', methods=['POST'])

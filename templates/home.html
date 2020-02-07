@@ -59,10 +59,10 @@
                 
                 {% if msg not in user.messages %} 
                    {% if msg in likes %}
-                <form action="/messages/{{msg.id}}/like" method="post" class="star"> <button> <i class="fas fa-star"></i></button>
+                <form action="/messages/{{msg.id}}/like" method="post" class="star"> <button> <i class="fas fa-star" id="{{msg.id}}"></i></button>
                  </i></form>
                   {% else %}
-                  <form action="/messages/{{msg.id}}/like" method="post" class="star"> <button> <i class="far fa-star"></i></button>
+                  <form action="/messages/{{msg.id}}/like" method="post" class="star"> <button> <i class="far fa-star" id="{{msg.id}}"></i></button>
                   </i></form>
                   {% endif %}
 
