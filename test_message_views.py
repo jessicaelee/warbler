@@ -38,7 +38,8 @@ class MessageViewTestCase(TestCase):
 
     def setUp(self):
         """Create test client, add sample data."""
-
+        db.drop_all()
+        db.create_all()
         User.query.delete()
         Message.query.delete()
 
@@ -71,3 +72,20 @@ class MessageViewTestCase(TestCase):
 
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
+    
+    def test_view_message(self):
+        """View a single message"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            
+            c.post("/messages/new", data={"text": "Hello"})
+            msg = Message.query.one()
+
+            resp = c.get(f'/messages/{msg.id}')
+            print(resp)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Hello", html)

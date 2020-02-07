@@ -311,7 +311,6 @@ def messages_add():
 @app.route('/messages/<int:message_id>', methods=["GET"])
 def messages_show(message_id):
     """Show a message."""
-
     msg = Message.query.get(message_id)
     return render_template('messages/show.html', message=msg)
 
