@@ -38,7 +38,7 @@ class MessageViewTestCase(TestCase):
 
     def setUp(self):
         """Create test client, add sample data."""
-        db.drop_all()
+        # db.drop_all()
         db.create_all()
         User.query.delete()
         Message.query.delete()
@@ -48,6 +48,11 @@ class MessageViewTestCase(TestCase):
         self.testuser = User.signup(username="testuser",
                                     email="test@test.com",
                                     password="testuser",
+                                    image_url=None)
+
+        self.testuser2 = User.signup(username="testuser2",
+                                    email="test2@test.com",
+                                    password="testuser2",
                                     image_url=None)
 
         db.session.commit()
@@ -84,8 +89,46 @@ class MessageViewTestCase(TestCase):
             msg = Message.query.one()
 
             resp = c.get(f'/messages/{msg.id}')
-            print(resp)
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("Hello", html)
+
+    def test_deleted_messages(self):
+        """Make sure a deleted message will not show up on page"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id      
+
+            c.post("/messages/new", data={"text": "Deleted message"})
+            msg = Message.query.one()
+
+            c.post(f'/messages/{msg.id}/delete')
+
+            resp = c.get(f'/users/{self.testuser.id}')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertNotIn("Deleted message", html)
+           
+    def test_add_like_to_message(self):
+        """test that a like is added to a message"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+                user1 = self.testuser
+                user2 = self.testuser2      
+                message = Message(text="User2 Message", user_id=f"{user2.id}")
+                db.session.add(message)
+                db.session.commit
+
+            c.post(f'/messages/{message.id}/like')
+            
+            resp = c.get(f'/users/{user1.id}/likes')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)     
+
+            # ISSUE WITH DB SESSION - THIS COULD USE WORK 
