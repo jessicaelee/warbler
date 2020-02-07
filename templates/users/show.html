@@ -19,25 +19,25 @@
                 <span class="text-muted"
                     >{{ message.timestamp.strftime('%d %B %Y') }}</span
                 >
-                {% if message not in g_user.messages %} 
-                    {% if message in likes %}
-                        <form
-                            action="/messages/{{message.id}}/like"
-                            method="post"
-                            class="star"
-                        >
-                            <button><i class="fas fa-star"></i></button>
-                        </form>
-                    {% else %}
-                        <form
-                            action="/messages/{{message.id}}/like"
-                            method="post"
-                            class="star"
-                        >
-                            <button><i class="far fa-star"></i></button>
-                        </form>
-                    {% endif %} 
-                {% endif %}
+
+                {% if message not in g_user.messages %} {% if message in likes
+                %}
+                <form
+                    action="/messages/{{message.id}}/like"
+                    method="post"
+                    class="star"
+                >
+                    <button><i class="fas fa-star"></i></button>
+                </form>
+                {% else %}
+                <form
+                    action="/messages/{{message.id}}/like"
+                    method="post"
+                    class="star"
+                >
+                    <button><i class="far fa-star"></i></button>
+                </form>
+                {% endif %} {% endif %}
 
                 <p>{{ message.text }}</p>
             </div>

@@ -329,7 +329,6 @@ def messages_destroy(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
-
 @app.route('/messages/<int:message_id>/like', methods=['POST'])
 def message_like(message_id):
 

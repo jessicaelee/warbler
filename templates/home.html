@@ -41,7 +41,7 @@
     <div class="col-lg-6 col-md-8 col-sm-12">
       {% if g.user.following | length == 0 %}
         You're not following anyone. Click 
-          <a id="no-followers" href="/users">here</a> to find some users to follow!
+          <a id="no-followers" href="/users">here</a> to find some users to follow! 
       {% endif %}
       <ul class="list-group" id="messages">
 
@@ -71,8 +71,18 @@
              
               <p>{{ msg.text }}</p>
             </div>
+            <!-- <div>
+              {% if msg in user.messages %} 
+                <form action="/messages/{{msg.id}}/delete" method="post" class="star delete"> <button> Delete</button>
+                </i></form>
+              {% endif %}
+            </div> -->
           </li>
+        
         {% endfor %}
+
+        
+
       </ul>
     </div>
 
