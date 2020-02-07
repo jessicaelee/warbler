@@ -158,6 +158,8 @@ def users_show(user_id):
                 .limit(100)
                 .all())
     
+    print("****User.messages.timestamp")
+
     likes = g.user.liked_messages
 
     return render_template('users/show.html', g_user=g.user, user=user, messages=messages, likes=likes)
