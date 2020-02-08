@@ -192,6 +192,9 @@ nav + .container {
     height: 48px;
     width: 48px;
     margin-top: 2px;
+    object-fit: cover;
+    background-color: white;
+}
 }
 
 .message-area,
