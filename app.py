@@ -219,10 +219,14 @@ def stop_following(follow_id):
         return redirect("/")
 
     # referer = request.headers.get("Referer")
+    try:
+        followed_user = User.query.get(follow_id)
+        g.user.following.remove(followed_user)
+        db.session.commit()
+    except:
+        return jsonify(error="error in database. unable to update following status.")
 
-    followed_user = User.query.get(follow_id)
-    g.user.following.remove(followed_user)
-    db.session.commit()
+    return jsonify(dbupdate=True)
 
     # return redirect(referer)  # old version: /users/{g.user.id}/following")
 
@@ -289,6 +293,7 @@ def show_likes(user_id):
 
 @app.route('/users/<int:user_id>/likes_count')
 def return_like_count(user_id):
+    """get the number of likes for a user"""
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect('/')
@@ -302,6 +307,7 @@ def return_like_count(user_id):
 
 @app.route('/users/<int:user_id>/following_count')
 def return_following_count(user_id):
+    """get the number of following for user"""
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect('/')
@@ -309,6 +315,20 @@ def return_following_count(user_id):
     user = User.query.get(user_id)
     if user:
         count = len(user.following)
+        return jsonify(count=count)
+    else:
+        return jsonify(error="No user found")
+
+@app.route('/users/<int:user_id>/followers_count')
+def return_followers_count(user_id):
+    """get the number of followers for user"""
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect('/')
+
+    user = User.query.get(user_id)
+    if user:
+        count = len(user.followers)
         return jsonify(count=count)
     else:
         return jsonify(error="No user found")

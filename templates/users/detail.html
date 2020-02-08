@@ -26,7 +26,9 @@
                     <li class="stat">
                         <p class="small">Following</p>
                         <h4>
-                            <a id="following" href="/users/{{ user.id }}/following"
+                            <a
+                                id="following"
+                                href="/users/{{ user.id }}/following"
                                 >{{ user.following | length }}</a
                             >
                         </h4>
@@ -34,7 +36,9 @@
                     <li class="stat">
                         <p class="small">Followers</p>
                         <h4>
-                            <a id="followers" href="/users/{{ user.id }}/followers"
+                            <a
+                                id="followers"
+                                href="/users/{{ user.id }}/followers"
                                 >{{ user.followers | length }}</a
                             >
                         </h4>
@@ -68,14 +72,22 @@
                             method="POST"
                             action="/users/stop-following/{{ user.id }}"
                         >
-                            <button class="btn btn-primary follow-button">Unfollow</button>
+                            <button
+                                class="btn btn-primary follow-button"
+                                data-userid="{{ user.id }}"
+                            >
+                                Unfollow
+                            </button>
                         </form>
                         {% else %}
                         <form
                             method="POST"
                             action="/users/follow/{{ user.id }}"
                         >
-                            <button class="btn btn-outline-primary follow-button">
+                            <button
+                                class="btn btn-outline-primary follow-button"
+                                data-userid="{{ user.id }}"
+                            >
                                 Follow
                             </button>
                         </form>
@@ -91,6 +103,9 @@
     <div class="col-sm-3">
         <h4 id="sidebar-username">@{{ user.username }}</h4>
         <p id="user-id" hidden>{{ user.id }}</p>
+        {% if g.user.id == user.id %}
+        <p id="logged-in-users-page" hidden>loggedin</p>
+        {% endif %}
         <p>
             {% if user.bio %} {{ user.bio }} {% else %} No Bio Provided. {%
             endif %}
