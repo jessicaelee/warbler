@@ -198,6 +198,7 @@ nav + .container {
 
 .message-area {
     margin-left: 10px;
+    width: 100%;
 }
 
 #warbler-hero {
@@ -280,8 +281,13 @@ nav + .container {
 .star {
     display: inline-block;
     position: relative;
+    float: right;
     z-index: 3;
     outline: 0;
+}
+
+.fas {
+    color: orange;
 }
 
 .star button {
