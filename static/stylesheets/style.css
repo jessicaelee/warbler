@@ -164,6 +164,7 @@ nav + .container {
     display: block;
     margin-left: -15px;
     background-color: white;
+    object-fit: cover;
 }
 
 #profile-image {
