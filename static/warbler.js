@@ -6,7 +6,7 @@ $(function () {
     usersOwnPage = $("#logged-in-users-page").text()
 
 
-    $messages.on("click", '.fa-star', async function (e) {
+    $messages.on("click", '.star', async function (e) {
         e.preventDefault()
         await updateStar($(e.target), e.target.id)
     })
