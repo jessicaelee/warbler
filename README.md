@@ -1,4 +1,4 @@
-**#Warbler**
+**Warbler**
 Warbler is a Twitter clone built using Flask with SQLAlchemy and Jinja templates.
 
 **Features that have been implemented:**
