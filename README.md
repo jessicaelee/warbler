@@ -1,32 +1,31 @@
-**Warbler**
-Warbler is a Twitter clone built using Flask with SQLAlchemy and Jinja templates.
+**Warbler is a Twitter clone built using Flask.**
 
 
 **Features that have been implemented:**
-Creating a user
-Profile page
-Editing profiles
-Following other users
-Blocking other users
-Writing posts
-Liking posts
-Libraries
-Bcrypt: used for encrypting passwords
-WTForms: used for form validation
-SQLAlchemy: an Object Relational Mapper
+1. Creating a user
+2. Profile page
+3. Editing profiles
+4. Following other users
+5. Blocking other users
+6. Writing posts
+7. Liking posts
+8. Libraries
+9. Bcrypt: used for encrypting passwords
+10. WTForms: used for form validation
+11. SQLAlchemy: an Object Relational Mapper
 
 
 **Setup**
-"python3 -m venv venv" at the root directory to create a virtual environment
-"source venv/bin/activate" to activate the virtual environment
-"pip install -r requirements.txt" to install requirements
-"createdb warbler" to create a new database
-"python seed.py" to seed the database
-"flask run" to start the server at http://localhost:5000/
+1. "python3 -m venv venv" at the root directory to create a virtual environment
+2. "source venv/bin/activate" to activate the virtual environment
+3. "pip install -r requirements.txt" to install requirements
+4. "createdb warbler" to create a new database
+5. "python seed.py" to seed the database
+6. "flask run" to start the server at http://localhost:5000/
 
 
 **Testing**
 How to run the test files:
-"createdb warbler-test" to create the test database
-"python seed.py" to seed the database
-"python3 -m unittest -v name_of_test_file" to run one test file. The test files start with "_test". The -v flag can also be excluded if you do not want to see the status of individual tests.
+1. "createdb warbler-test" to create the test database
+2. "python seed.py" to seed the database
+3. "python3 -m unittest -v name_of_test_file" to run one test file. The test files start with "_test". The -v flag can also be excluded if you do not want to see the status of individual tests.
